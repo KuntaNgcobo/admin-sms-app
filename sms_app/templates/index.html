@@ -1,6 +1,9 @@
+<div>
+    <h1>Form to send a message to a number</h1> <a href="{% url 'sms_app:sms_form' %}">Send a SMS</a>
+</div>
 {% if sms_list %}
 <h1>List of messages</h1>
-    <span style="background-color: #eee; width: 33%; float:left;">
+    <span style="background-color: #eee; width: 25%; float:left;">
     {% for sms in sms_list %}
         <hr>
         <p>To: <b>{{ sms.number }}</b></p>

@@ -1,0 +1,20 @@
+<form action="{% url 'sms_app:sms_form' %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+        <legend><h1>Compose message</h1></legend>
+        {% if number_error %}
+        <p>
+            {{ number_error }}
+        </p>
+        {% endif %}
+        <label>Phone Number</label>
+        <input type="text" name="number" id="number" value="">
+        <br><br>
+        <label>Message</label>
+        <input type="text" name="message" id="message" value="">
+        <br>
+    </fieldset>
+    <input type="submit" value="Send">
+</form>
+    <a href="{% url 'sms_app:index' %}">Go Back</a>
+</div>
