@@ -1,0 +1,15 @@
+{% if sms_list %}
+<h1>List of messages</h1>
+    <span style="background-color: #eee; width: 33%; float:left;">
+    {% for sms in sms_list %}
+        <hr>
+        <p>To: <b>{{ sms.number }}</b></p>
+        <p>Message: <b>{{ sms.message }}</b></p>
+        <p>Status: <b>{{ sms.status }}</b></p>
+        <p>Date: <b>{{ sms.date }}</b></p>
+    {% endfor %}
+    <hr>
+    </span>
+{% else %}
+    <h1>No messages are available.</h1>
+{% endif %}
