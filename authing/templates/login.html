@@ -1,0 +1,14 @@
+<form action="{% url 'authing:login_user' %}" method="post"> {% csrf_token %}
+    {% if error %}
+        <p style="color:red">
+            {{ error }}
+        </p>
+    {% endif %}
+    <fieldset>
+        <legend><h1>Login</h1></legend>
+        {% if html %}
+            {{ html }}
+        {% endif %}
+    </fieldset>
+    <input type="submit" value="Send">
+</form>

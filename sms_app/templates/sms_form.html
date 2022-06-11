@@ -1,15 +1,25 @@
 <form action="{% url 'sms_app:sms_form' %}" method="post">
+    {% if network_error %}
+        <p style="color:red">
+            {{ network_error }}
+        </p>
+        {% endif %}
     {% csrf_token %}
     <fieldset>
         <legend><h1>Compose message</h1></legend>
         {% if number_error %}
-        <p>
+        <p style="color:red">
             {{ number_error }}
         </p>
         {% endif %}
         <label>Phone Number</label>
         <input type="text" name="number" id="number" value="">
         <br><br>
+        {% if message_error %}
+        <p style="color:red">
+            {{ message_error }}
+        </p>
+        {% endif %}
         <label>Message</label>
         <input type="text" name="message" id="message" value="">
         <br>
@@ -18,3 +28,4 @@
 </form>
     <a href="{% url 'sms_app:index' %}">Go Back</a>
 </div>
+

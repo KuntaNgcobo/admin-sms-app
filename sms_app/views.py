@@ -1,54 +1,123 @@
-import time
-from django.urls import reverse
-import phonenumbers
-
 from datetime import datetime
+from requests import RequestException
+
+from django.contrib.auth import views
+from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 
-from .models import SMS
+from twilio.base.exceptions import TwilioRestException
+from twilio.rest import Client
 
+from .models import Message
+
+import phonenumbers
+
+from dotenv import dotenv_values
+
+envvar = dotenv_values(".env")
+client = Client(envvar["TA_SID"], envvar["TA_TOKEN"])
+
+def authenticate(request):
+    print("AUTH:",request.user,request.user.is_authenticated, request.user.is_anonymous)
+    if not request.user.is_authenticated or request.user.is_anonymous:
+        context = {
+                "error": "There Was An Error Logging In, Try Again...",
+                "html": views.LoginView.form_class(),
+            }
+        return render(request, 'login.html', context)
 
 def index(request):
-    sms_list = SMS.objects.order_by('date')[:5]
+    authenticate(request)
+    reload_status()
+
+    sms_list = Message.objects.order_by('date')[::-1]
     context = {
-        'sms_list': sms_list,
+        'sms_list': sms_list[:8],
         }
     return render(request, 'index.html', context)
 
+def reload_status():
+    queued = Message.objects.filter( status="queued" )
+    queued_sids = [ msg.sms_id for msg in queued ]
+
+    for sid in queued_sids:
+        try:            
+            message_status = client.messages.get(sid).fetch().status
+            message = Message.objects.filter( sms_id = sid )
+            for msg in message:
+                msg.status = message_status
+                msg.save()
+
+        except TwilioRestException:
+            print( f"Message with sid {sid} failed to obtain status" )
+
+        except RequestException:
+            print( f"Network request failure" )
+
 def sms_form(request):
+    authenticate(request)
     if request.method == "POST":
         return send_sms(request)
 
-    context = {}
-    return render(request, 'sms_form.html', context)
+    return render(request, 'sms_form.html', {})
+
+def number_message_check(number, message):
+    parsed_phone_number = phonenumbers.parse( number )
+    if not message or not number:
+        raise ValueError("Please enter a message or a number.")
+    elif len( message ) > 160:
+        raise ValueError("Message to long, keep it under 160 characters.")
+    elif not phonenumbers.is_valid_number_for_region(parsed_phone_number, "ZA"):
+        raise phonenumbers.NumberParseException
+
+    return parsed_phone_number
 
 def send_sms(request):
+    print("req", request)
     sms = {
-        "time_now": datetime.now(),
-        "status": "PENDING",
+        "message": request.POST['message'], 
+        "number": request.POST['number'],
         }
     try:
-        #selected_choice = question.choice_set.get(pk=request.POST['choice'])
-        phone_number = phonenumbers.parse( request.POST['number'] )
-        sms["number"] = phone_number
-        sms["message"] = request.POST['message']
+        parsed_phone_number = number_message_check( sms["number"], sms["message"] )
 
-        print("Send start", sms)
-        if not phonenumbers.is_valid_number_for_region(phone_number, "ZA"):
-            raise KeyError
-        
-    except (KeyError):
-        # Redisplay the question voting form.
-        print("Error")
+    except ValueError as e:
+        print("############################################################")
         return render(request, 'sms_form.html', {
-            'number_error': "Number not valid for South Africa",
+            'message_error': e,
+        })
+
+    except phonenumbers.NumberParseException:
+        print("############################################################")
+        return render(request, 'sms_form.html', {
+            'number_error': "Number not valid",
+        })
+
+    else:
+        sms["parsed_phone_number"] = parsed_phone_number
+
+    try:
+        print("Sending SMS...")
+        message = client.messages.create(
+                    body=sms["message"],
+                    from_='+15076291974',
+                    to=sms["number"], 
+                    provide_feedback=True,
+                )
+
+    except RequestException as e:
+        return render(request, 'sms_form.html', {
+            'network_error': "Network Error Request Failed.",
+        })
+    except TwilioRestException as e:
+        return render(request, 'sms_form.html', {
+            'number_error': "Number is unverified.",
         })
     else:
-        print("Else")
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
-        time.sleep(1)
+        sms_sql = Message( sms_id = message.sid, number = sms["parsed_phone_number"], 
+                message = sms["message"], status=message.status, date=datetime.now() )
+        sms_sql.save()
+        # Always return an HttpResponseRedirect after successfully dealing with POST data.
+        # This prevents data from being posted twice if a user hits the Back button.
         return HttpResponseRedirect(reverse('sms_app:index'))
-        return render(request, 'index.html', sms)

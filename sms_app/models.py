@@ -3,7 +3,8 @@ from django.db import models
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
-class SMS(models.Model):
+class Message(models.Model):
+    sms_id = models.CharField(max_length=50, null=False, blank=False, primary_key=True)
     number = PhoneNumberField(null=False, blank=False)
     message = models.CharField(max_length=200)
     status = models.CharField(max_length=20)

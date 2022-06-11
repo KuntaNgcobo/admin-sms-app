@@ -1,18 +1,28 @@
 <div>
-    <h1>Form to send a message to a number</h1> <a href="{% url 'sms_app:sms_form' %}">Send a SMS</a>
+    <span style="float:right">
+        <a href="{% url 'authing:login_user' %}"><h4>Logout</h4> </a>
+    </span>
+    <span>
+        <h2>Form to send a message to a number</h2> <a href="{% url 'sms_app:sms_form' %}">Send a SMS</a>
+    </span>
 </div>
+
 {% if sms_list %}
 <h1>List of messages</h1>
-    <span style="background-color: #eee; width: 25%; float:left;">
+    <div>
+        <h4>Reload SMS Status</h1> <a href="{% url 'sms_app:index' %}">Send a SMS</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 75% 75% 75%; float:left">
     {% for sms in sms_list %}
-        <hr>
-        <p>To: <b>{{ sms.number }}</b></p>
-        <p>Message: <b>{{ sms.message }}</b></p>
-        <p>Status: <b>{{ sms.status }}</b></p>
-        <p>Date: <b>{{ sms.date }}</b></p>
+        <div style="background-color: #ddd; border-radius: 25px; margin: 5px; padding: 5px;">
+            <p>To: <b>{{ sms.number }}</b></p>
+            <p>Message: <b>{{ sms.message }}</b></p>
+            <p>Status: <b>{{ sms.status }}</b></p>
+            <p>Date: <b>{{ sms.date }}</b></p>
+        </div>
     {% endfor %}
-    <hr>
-    </span>
+    </div>
 {% else %}
     <h1>No messages are available.</h1>
 {% endif %}
