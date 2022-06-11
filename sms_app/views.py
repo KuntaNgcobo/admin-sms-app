@@ -12,11 +12,13 @@ from twilio.rest import Client
 from .models import Message
 
 import phonenumbers
+import os
 
 from dotenv import dotenv_values
 
-envvar = dotenv_values(".env")
-client = Client(envvar["TA_SID"], envvar["TA_TOKEN"])
+#envvar = dotenv_values(".env")
+#client = Client(envvar["TA_SID"], envvar["TA_TOKEN"])
+client = Client(os.environ.get('EMAIL_HOST_USER'), os.environ.get('EMAIL_HOST_USER'))
 
 def authenticate(request):
     print("AUTH:",request.user,request.user.is_authenticated, request.user.is_anonymous)
