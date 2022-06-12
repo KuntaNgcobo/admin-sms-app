@@ -8,12 +8,9 @@
 </div>
 
 {% if sms_list %}
-<h1>List of messages</h1>
-    <div>
-        <h4>Reload SMS Status</h1> <a href="{% url 'sms_app:index' %}">Send a SMS</a>
-    </div>
+<h1>List of messages</h1> <a href="{% url 'sms_app:index' %}">Reload SMS Status</a>
 
-    <div style="display: grid; grid-template-columns: 75% 75% 75%; float:left">
+    <div style="display: grid; grid-template-columns: 33% 33% 33%; float:left">
     {% for sms in sms_list %}
         <div style="background-color: #ddd; border-radius: 25px; margin: 5px; padding: 5px;">
             <p>To: <b>{{ sms.number }}</b></p>
