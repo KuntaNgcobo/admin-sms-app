@@ -16,9 +16,10 @@ import os
 
 from dotenv import dotenv_values
 
-#envvar = dotenv_values(".env")
-#client = Client(envvar["TA_SID"], envvar["TA_TOKEN"])
-client = Client(os.environ.get('EMAIL_HOST_USER'), os.environ.get('EMAIL_HOST_USER'))
+env_twilio_sid = os.environ.get('TA_SID')
+env_twilio_token = os.environ.get('TA_TOKEN')
+
+client = Client(env_twilio_sid, env_twilio_token) 
 
 def authenticate(request):
     print("AUTH:",request.user,request.user.is_authenticated, request.user.is_anonymous)
@@ -113,10 +114,12 @@ def send_sms(request):
             'network_error': "Network Error Request Failed.",
         })
     except TwilioRestException as e:
+        print(e)
         return render(request, 'sms_form.html', {
             'number_error': "Number is unverified.",
         })
     else:
+        print("SMS Sent")
         sms_sql = Message( sms_id = message.sid, number = sms["parsed_phone_number"], 
                 message = sms["message"], status=message.status, date=datetime.now() )
         sms_sql.save()
