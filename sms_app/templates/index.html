@@ -1,15 +1,20 @@
 <div>
     <span style="float:right">
-        <a href="{% url 'authing:login_user' %}"><h4>Logout</h4> </a>
+        <a href="{% url 'authing:logout_user' %}"><h4>Logout</h4> </a>
     </span>
     <span>
         <h2>Form to send a message to a number</h2> <a href="{% url 'sms_app:sms_form' %}">Send a SMS</a>
     </span>
 </div>
 
-{% if sms_list %}
-<h1>List of messages</h1> <a href="{% url 'sms_app:index' %}">Reload SMS Status</a>
+{% if db_error %}
+<h1>{{ db_error }}</h1>
+{% endif %}
 
+{% if sms_list %}
+<div>
+    <h1>List of messages</h1> <a href="{% url 'sms_app:index' %}">Reload SMS Status</a>
+</div>
     <div style="display: grid; grid-template-columns: 33% 33% 33%; float:left">
     {% for sms in sms_list %}
         <div style="background-color: #ddd; border-radius: 25px; margin: 5px; padding: 5px;">

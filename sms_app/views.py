@@ -1,10 +1,12 @@
 from datetime import datetime
+from psycopg2 import OperationalError
 from requests import RequestException
 
 from django.contrib.auth import views
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from django.shortcuts import redirect, render
 
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
@@ -14,31 +16,41 @@ from .models import Message
 import phonenumbers
 import os
 
-from dotenv import dotenv_values
 
 env_twilio_sid = os.environ.get('TA_SID')
 env_twilio_token = os.environ.get('TA_TOKEN')
-
 client = Client(env_twilio_sid, env_twilio_token) 
 
 def authenticate(request):
     print("AUTH:",request.user,request.user.is_authenticated, request.user.is_anonymous)
+    print(request.__str__())
     if not request.user.is_authenticated or request.user.is_anonymous:
+        print( "USER:", request.user )
         context = {
                 "error": "There Was An Error Logging In, Try Again...",
                 "html": views.LoginView.form_class(),
             }
-        return render(request, 'login.html', context)
+        return redirect('/')
+        #return HttpResponseRedirect(reverse('login_user', args=[1945]))
 
+@login_required
 def index(request):
-    authenticate(request)
     reload_status()
+    print(request)
 
-    sms_list = Message.objects.order_by('date')[::-1]
-    context = {
-        'sms_list': sms_list[:8],
-        }
-    return render(request, 'index.html', context)
+    try:
+        sms_list = Message.objects.order_by('date')[::-1]
+    except OperationalError:
+        context = {
+            'db_error': "Unable to connect to database",
+            }
+        return render(request, 'index.html', context)
+    else:
+        context = {
+            'sms_list': sms_list[:8],
+            }
+        return render(request, 'index.html', context)
+    
 
 def reload_status():
     queued = Message.objects.filter( status="queued" )
@@ -58,8 +70,8 @@ def reload_status():
         except RequestException:
             print( f"Network request failure" )
 
+@login_required
 def sms_form(request):
-    authenticate(request)
     if request.method == "POST":
         return send_sms(request)
 
@@ -76,6 +88,7 @@ def number_message_check(number, message):
 
     return parsed_phone_number
 
+@login_required
 def send_sms(request):
     print("req", request)
     sms = {
