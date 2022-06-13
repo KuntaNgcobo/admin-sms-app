@@ -1,10 +1,10 @@
 # Admin SMS App
+This is an application in which one can send an SMS to someone's phonenumber via the site's Send-SMS form.
 
 # How to use
 You can access to app from this url: https://sender-sms-app.herokuapp.com
 
-Once you have logged in, you will be navigated to the sms_app page, 
-where you can view the previously sent messages, access page to send form to the user or logout
+Once you have logged in, you will be navigated to the sms_app page, where you can view the previously sent messages, access page to send form to the user or logout.
 
 To send a SMS to number:
     - Click on the link link with text `Send a SMS`, to which you'll be navigated to the relevant page
